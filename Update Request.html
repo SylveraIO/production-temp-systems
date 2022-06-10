@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <script>
+      function submitInfo(){
+        //Add some validation here for the elements!
+        let code = document.getElementById("sylCode").value;
+        let updateType = document.getElementById("updateType").value;
+        let updateDescription = document.getElementById("description").value;
+        let updateTeam = document.getElementById("accountable").value;
+        let updateUrgency = document.getElementById("updateUrgency").value;
+        let updateSize = document.getElementById("updateSize").value;
+
+        google.script.run.logUpdate(code,updateType,updateDescription,updateTeam,updateUrgency,updateSize);
+        google.script.host.close();
+      }
+    </script>
+  </head>
+  <body>
+    <h3>Requesting update for project <?= sylCode ?></h3>
+    <input type="hidden" id="sylCode" name="sylCode" value=<?= sylCode ?>>
+    <div class="block form-group">
+      <label for="updateType">Please select the type of update</label>
+      <select id="updateType">
+        <? for(var i=0; i<updateList.length; i++){ ?>
+          <option value=<?= updateList[i] ?>>
+          <?= updateList[i] ?>
+          </option>
+        <? } ?>
+      </select>
+    </div>
+
+    <div class="block form-group">
+      <label for="description">Update description:</label>
+      <textarea id="description" name="description" rows="4" cols="50">Please insert update information here</textarea>
+    </div>
+
+    <div class="block form-group">
+      <label for="accountable">Please select the team who will monitor this update</label>
+      <select id="accountable">
+        <? for(var i=0; i<teamList.length; i++){ ?>
+          <option value=<?= teamList[i] ?>>
+          <?= teamList[i] ?>
+          </option>
+        <? } ?>
+      </select>
+    </div>
+
+    <div class="block form-group">
+      <label for="updateUrgency">Please select the estimated urgency of this update</label>
+      <select id="updateUrgency">
+        <? for(var i=0; i<urgency.length; i++){ ?>
+          <option value=<?= urgency[i] ?>>
+          <?= urgency[i] ?>
+          </option>
+        <? } ?>
+      </select>
+    </div>
+
+    <div class="block form-group">
+      <label for="updateSize">Please select the estimated size of this update</label>
+      <select id="updateSize">
+        <? for(var i=0; i<size.length; i++){ ?>
+          <option value=<?= size[i] ?>>
+          <?= size[i] ?>
+          </option>
+        <? } ?>
+      </select>
+    </div>
+
+    <div class="block form-group">
+      <button class="action" onClick="submitInfo()">Save</button>
+      <button class="create" onClick="google.script.host.close()">Cancel</button>
+    </div>
+  </body>
+</html>
+
+<!-- CSS Reference: https://developers.google.com/apps-script/add-ons/guides/css -->
