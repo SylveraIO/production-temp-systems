@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <script>
+      function submitInfo(){
+        let developer = document.getElementById("developer").value;
+        let projectCode = document.getElementById("sylCode").value;
+
+        //Add some validation here for the elements!
+        google.script.run.addDevToProject(projectCode,developer);
+        google.script.host.close();
+      }
+    </script>
+  </head>
+  <body>
+    <h3>Adding developer for project <?= sylCode ?></h3>
+
+    <input type="hidden" id="sylCode" name="sylCode" value=<?= sylCode ?>>
+
+    <div class="block form-group">
+      <label for="developer">Please select a developer</label>
+      <select id="developer">
+        <? for(var i=0; i<developerList.length; i++){ ?>
+          <option value=<?= developerList[i].id ?>>
+          <?= developerList[i].properties.name ?>
+          </option>
+        <? } ?>
+      </select>
+    </div>
+
+    <div class="block form-group">
+      <p>If you can't find the developer in the list, please add it to <a href="https://app-eu1.hubspot.com/user-guide/25866103?via=home">Hubspot</a> following the process</p>
+    </div>
+
+    <div class="block form-group">
+      <button class="action" onClick="submitInfo()">Save</button>
+      <button class="create" onClick="google.script.host.close()">Cancel</button>
+    </div>
+  </body>
+</html>
+
+<!-- CSS Reference: https://developers.google.com/apps-script/add-ons/guides/css -->
