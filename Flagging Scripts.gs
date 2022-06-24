@@ -6,7 +6,7 @@ function raiseFlag(sylCode){
   let flagCategoryData = sheet.getRange("B2:B").getValues();
   let flagCategories = flattenData(flagCategoryData);
 
-  let html = HtmlService.createTemplateFromFile("Raise Flag");
+  let html = HtmlService.createTemplateFromFile("Flagging Interface");
   html.types = flagTypeList;
   html.categories = flagCategories;
   html.sylCode = sylCode;
