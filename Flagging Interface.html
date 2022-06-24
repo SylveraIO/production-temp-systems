@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <script>
+      function submitInfo(){
+        let code = document.getElementById("sylCode").value;
+        let description = document.getElementById("description").value;
+        let flagType = document.getElementById("flagType").value;
+        let flagCategory = document.getElementById("flagCategory").value;
+        let tracking = document.getElementById("tracking").value;
+        //Add some validation here for the elements!
+        google.script.run.logFlag(code,flagType,flagCategory,description,tracking);
+        google.script.host.close();
+      }
+    </script>
+  </head>
+  <body>
+    <h3>Recording new flag for project <?= sylCode ?></h3>
+    <input type="hidden" id="sylCode" name="sylCode" value=<?= sylCode ?>>
+    <div class="block form-group">
+      <label for="flagType">Please select the type of flag</label>
+      <select id="flagType">
+        <? for(var i=0; i<types.length; i++){ ?>
+          <option value=<?= types[i] ?>>
+          <?= types[i] ?>
+          </option>
+        <? } ?>
+      </select>
+    </div>
+
+    <div class="block form-group">
+      <label for="flagCategory">Please select the category of the flag</label>
+      <select id="flagCategory">
+        <? for(var i=0; i<categories.length; i++){ ?>
+          <option value=<?= categories[i] ?>>
+          <?= categories[i] ?>
+          </option>
+        <? } ?>
+      </select>
+    </div>
+
+    <div class="block form-group">
+      <label for="description">Flag description:</label>
+      <textarea id="description" name="description" rows="4" cols="50">Please insert a detailed flag description here</textarea>
+    </div>
+
+    <div class="block form-group">
+      <label for="tracking">If available, please paste a link to the tracking (i.e. Jira Issue, Hubspot)</label>
+      <input id="tracking" name="tracking" type="url">
+    </div>
+
+    <div class="block form-group">
+      <button class="action" onClick="submitInfo()">Save</button>
+      <button class="create" onClick="google.script.host.close()">Cancel</button>
+    </div>
+  </body>
+</html>
+
+<!-- CSS Reference: https://developers.google.com/apps-script/add-ons/guides/css -->
