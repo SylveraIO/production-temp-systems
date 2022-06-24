@@ -46,12 +46,45 @@ function addDevToProject(projectCode,developerId){
 }
 
 function getDevelopers(){
+  let allDevelopers = [];
   const API_KEY = "eu1-62f0-617a-4a2b-b7a0-5326e92fae39" //How do we keep this safe?
-  const url = `https://api.hubapi.com/crm/v3/objects/companies?limit=10&archived=false&hapikey=${API_KEY}`
+  const url = `https://api.hubapi.com/crm/v3/objects/companies?limit=100&archived=false&hapikey=${API_KEY}`;
   const responseRaw = UrlFetchApp.fetch(url,{method:"get"})
   const response = JSON.parse(responseRaw);
-  Logger.log(response.results)
-  return response.results
+  allDevelopers = [...response.results];
+
+  //First iteration, then loop
+  if(response.paging!=null){
+    let subResponseRaw = UrlFetchApp.fetch(`${response.paging.next.link}&hapikey=${API_KEY}`,{method:"get"});
+    let subResponse = JSON.parse(subResponseRaw);
+    allDevelopers = [...allDevelopers,...subResponse.results]
+    if(subResponse.paging!=null){
+      let loop = true;
+      while(loop){
+        subResponseRaw = UrlFetchApp.fetch(`${subResponse.paging.next.link}&hapikey=${API_KEY}`,{method:"get"});
+        subResponse = JSON.parse(subResponseRaw);
+        allDevelopers = [...allDevelopers,...subResponse.results]
+        if(subResponse.paging===null){
+          loop=false
+        }
+      }
+    }
+  }
+
+  //Sort alphabetically by name of developer
+
+  allDevelopers.sort((a,b)=>{
+    if(a.properties.name==null){
+      return 1
+    }else if(b.properties.name==null){
+      return -1
+    }
+    let textA = a.properties.name.toUpperCase();
+    let textB = b.properties.name.toUpperCase();
+    return (textA < textB) ? -1:(textA>textB)?1:0;
+  });
+
+  return allDevelopers
 }
 
 function getDealInformation(){
@@ -74,16 +107,13 @@ function getDealInformation(){
   })
 
   //Get developer information
-  const developerUrl = `https://api.hubapi.com/crm/v3/objects/companies?hapikey=${API_KEY}`;
-  const developersResponse = UrlFetchApp.fetch(developerUrl,{method:"get"});
-  const developersRaw = JSON.parse(developersResponse);
+  const developersRaw = getDevelopers();
   const developers = {}
 
-  developersRaw.results.forEach(dev=>{
+  developersRaw.forEach(dev=>{
     developers[dev.properties.hs_object_id] = dev.properties.name;
-  })
+  });
 
-  
   //Paste status
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const database = ss.getSheetByName("Project DB");
@@ -95,14 +125,14 @@ function getDealInformation(){
     if(value[1]!==""){
       for(let i=0;i<deals.results.length;i++){
         if(deals.results[i].id==value[1].toString()){
-          dumpArray.push([developer,"",stages[deals.results[i].properties.dealstage],deals.results[i].properties["requested_shapefiles"]!=null?properties["requested_shapefiles"]:"No"])
+          dumpArray.push([developer,stages[deals.results[i].properties.dealstage],deals.results[i].properties["requested_shapefiles"]!=null?deals.results[i].properties["requested_shapefiles"]:"No data"])
         }
       }
     }else{
-      dumpArray.push([developer,"","",""])
+      dumpArray.push([developer,"",""])
     }
   }else{
-    dumpArray.push(["","","",""]);
+    dumpArray.push(["","",""]);
   }
   });
 
