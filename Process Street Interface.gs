@@ -1,12 +1,13 @@
 //Function that starts workflows for any production prep projects 
-function startWorkflow(name,id,row,column){
+function startWorkflow(name,id,row,column,archivedColumn=null){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ui = SpreadsheetApp.getUi();
   const dbSheet = ss.getSheetByName("Project DB");
   //Check if a workflow already exists
-  const archivedWorkflows = dbSheet.getRange(row,globalValues.prodArchivedWorkflows).getValue();
   const psLink = "https://app.process.st/checklists/";
 
+if(archivedColumn!==null){
+  const archivedWorkflows = dbSheet.getRange(row,archivedColumn).getValue();
   if(archivedWorkflows!==""){
     //An archived worfklow exists
     const archivedMessage = ui.alert("Archived workflow detected","There is an archived workflow for this project. Do you want to reactivate it?",ui.ButtonSet.YES_NO);
@@ -15,11 +16,13 @@ function startWorkflow(name,id,row,column){
       let chosenWorkflow = allArchived[allArchived.length-1];
       archiveActivateWorkflow("activate",chosenWorkflow);
       allArchived.pop();
-      dbSheet.getRange(row,globalValues.prodArchivedWorkflows).setValue(allArchived.join(","));
+      dbSheet.getRange(row,archivedColumn).setValue(allArchived.join(","));
       dbSheet.getRange(row,column).setFormula(`=hyperlink("${psLink+chosenWorkflow}";"${chosenWorkflow}")`)
       return
     }
   }
+}
+  
   
   const confirmationMessage = ui.alert("Do you want to start a new PS Workflow?","Please confirm whether you want to start a Process Street Workflow",ui.ButtonSet.YES_NO);
   if(confirmationMessage===ui.Button.YES){
@@ -92,10 +95,10 @@ function archiveTrial(){
   archiveWorkflow(93)
 }
 
-function archiveWorkflow(row){
+function archiveWorkflow(row,archiveColumn,activeColumn){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const db = ss.getSheetByName("Project DB");
-  const wfValue = db.getRange(row,globalValues.prodWorkflowColumn).getValue();
+  const wfValue = db.getRange(row,activeColumn).getValue();
   Logger.log(wfValue)
 
   //Check if workflow exists
@@ -106,7 +109,7 @@ function archiveWorkflow(row){
   //Workflow exists
 
   //Update the database
-  let archivedRange = db.getRange(row,globalValues.prodArchivedWorkflows)
+  let archivedRange = db.getRange(row,archiveColumn)
   let archivedValue = archivedRange.getValue();
   if(archivedValue===""){
     archivedRange.setValue(wfValue)
@@ -115,11 +118,8 @@ function archiveWorkflow(row){
     tempArray.push(wfValue);
     archivedRange.setValue(tempArray.join(","));
   };
-  db.getRange(row,globalValues.prodWorkflowColumn).setValue("");
+  db.getRange(row,activeColumn).setValue("");
 
   //Archive the workflow
   archiveActivateWorkflow("archive",wfValue);
 }
-
-
-
