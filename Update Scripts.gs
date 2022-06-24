@@ -29,71 +29,19 @@ function logUpdate(sylCode,updateType,updateDescription,updateTeam,updateUrgency
   const database = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Update DB");
   const uniqueId = Utilities.getUuid();
   const user = Session.getActiveUser().getEmail();
-  const updateValues = [uniqueId,sylCode,updateType,user,updateDescription,updateTeam,updateSize,updateUrgency,"","Open"];
+  const updateValues = [uniqueId,new Date(),sylCode,updateType,user,updateDescription,updateTeam,updateSize,updateUrgency,"","Open"];
   database.appendRow(updateValues);
-  //Update project DB with reference
-  const projectDB = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Project DB");
-  const dbValues = projectDB.getRange(globalValues.rowOffset,globalValues.sylCodeColumn,projectDB.getLastRow()-globalValues.rowOffset,6).getValues();
-  for(let i=0;i<dbValues.length;i++){
-    if(dbValues[i][0]===sylCode){
-      //Update activity
-      const activeUpdates = projectDB.getRange(i+globalValues.rowOffset,globalValues.activeUpdatesColumn);
-      const activeUpdatesValue = activeUpdates.getValue();
-      if(activeUpdatesValue===""){
-        activeUpdates.setValue(uniqueId)
-      }else{
-        let splitUpdates = activeUpdatesValue.split(",");
-        splitUpdates.push(uniqueId);
-        activeUpdates.setValue(splitUpdates.join(","));
-      }
-
-      break;
-    }
-  }
-}
-
-function completeUpdate(sylCode,updateId){
-  const projectDB = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Project DB");
-  const dbValues = projectDB.getRange(globalValues.rowOffset,globalValues.sylCodeColumn,projectDB.getLastRow()-globalValues.rowOffset,6).getValues();
-  for(let i=0;i<dbValues.length;i++){
-    if(dbValues[i][0]===sylCode){
-      //Update activity
-      const activeUpdates = projectDB.getRange(i+globalValues.rowOffset,globalValues.activeUpdatesColumn);
-      const pastUpdates = projectDB.getRange(i+globalValues.rowOffset,globalValues.pastUpdatesColumn);
-
-      const activeUpdatesValue = activeUpdates.getValue();
-      const pastUpdatesValue = pastUpdates.getValue();
-
-      const splitValues = activeUpdatesValue.split(",");
-      const updateIndex = splitValues.indexOf(updateId);
-
-      if(updateIndex>-1){
-        //Remove value from the active updates
-        splitValues.splice(updateIndex,1);
-        activeUpdates.setValue(splitValues.join(","));
-        //Add value to the past updates
-        if(pastUpdatesValue===""){
-          pastUpdates.setValue(updateId);
-        }else{
-          let splitPastUpdates = pastUpdatesValue.split(",");
-          splitPastUpdates.push(updateId);
-          pastUpdates.setValue(splitPastUpdates.join(","));
-        }
-      }
-
-      break;
-    }
-  }
 }
 
 function closeUpdate(updateId){
+  Logger.log(updateId);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Update DB");
-  const values = sheet.getRange(2,1,sheet.getLastRow()-2,1).getValues();
+  const values = sheet.getRange(2,1,sheet.getLastRow()-1,1).getValues();
   const user = Session.getActiveUser().getEmail();
   const today = new Date();
   for(let i=0;i<values.length;i++){
-    if(values[i][0]===updateId){
-      sheet.getRange(i+2,10,1,3).setValues([["Closed",user,today]]);
+    if(values[i][0]==updateId){  
+      sheet.getRange(i+2,11,1,3).setValues([["Closed",user,today]]);
       break;
     }
   }

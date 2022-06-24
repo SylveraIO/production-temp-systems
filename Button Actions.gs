@@ -1,6 +1,5 @@
 //PROMOTING IN VANILLA WORKFLOW
 function promoteButton(){
-  
   const promoteEnabled = ["Pre-Production","Production Prep","Production Ready","Production"];
   const sylveraCode = getSylveraCode(promoteEnabled,"promote","promoted",true)
   if(sylveraCode!==null){
@@ -48,14 +47,10 @@ function updateCompleteButton(){
   if(sheetName==="Updates"){
     const row = SpreadsheetApp.getActiveRange().getRow();
     const updateId = sheet.getRange(row,1).getValue();
-    const sylveraId = sheet.getRange(row,2).getValue();
     //Confirmation message here
     if(true){
       closeUpdate(updateId);
-      completeUpdate(sylveraId,updateId)
     }
-  }else{
-    
   }
 }
 
@@ -68,10 +63,37 @@ function developerButton(){
 }
 
 function raiseFlagButton(){
-  const flagEnabled = ["Pre-Production","Production Prep","Production Ready","Production","In App"];
-  const sylveraCode = getSylveraCode(flagEnabled,"raise flag","flag raised",true);
+  const flagEnabled = ["Pre-Production","Production Prep","Production Ready","Production","In App","Blocked"];
+  const sylveraCode = getSylveraCode(flagEnabled,"raise flag","flag raised",false);
   if(sylveraCode!==null){
     raiseFlag(sylveraCode);
+  }
+}
+
+function closeFlagButton(){
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const sheetName = sheet.getName();
+  if(sheetName==="Flags"){
+    const row = SpreadsheetApp.getActiveRange().getRow();
+    const updateId = sheet.getRange(row,1).getValue();
+    //Add confirmation
+    if(true){
+      closeFlag(updateId);
+    }
+  }
+}
+
+function markAsDeadButton(){
+  const deadEnabled = ["Pre-Production","Production Prep","Production Ready","Production","In App","Blocked"];
+  const sylveraCode = getSylveraCode(deadEnabled,"mark as dead","marked as dead",true);
+  if(sylveraCode!==null){
+    updateDbSingleRange(sylveraCode,globalValues.stageColumn,"Dead");
+    const ui = SpreadsheetApp.getUi();
+    let description = ui.prompt("Description","Please input why you think this project is dead",ui.ButtonSet.OK_CANCEL);
+    if(description.getSelectedButton()===ui.Button.OK){
+      updateDbSingleRange(sylveraCode,globalValues.deadDescriptionColumn,description.getResponseText());
+      updateDbSingleRange(sylveraCode,globalValues.deadDescriptionColumn+1,new Date());
+    }
   }
 }
 
@@ -102,7 +124,7 @@ function promoteDemote(code,mode){
       //Log information
       const activityRange = dbSheet.getRange(i+globalValues.rowOffset,globalValues.activityColumn);
       
-      updateActivity(activityRange,mode,currentValue,futureValue);
+      //updateActivity(activityRange,mode,currentValue,futureValue);
       doActions(futureValue,code,i+globalValues.rowOffset,mode,currentValue,projectType);
       break;
     }
@@ -115,10 +137,10 @@ function doActions(stage,code,row,mode,prevStage,projectType){
       let wfId = findId(projectType,prevStage,stage);
       switch(stage){
         case "Production":
-          startWorkflow(code,wfId,row,globalValues.prodWorkflowColumn)
+          startWorkflow(code,wfId,row,globalValues.prodWorkflowColumn,globalValues.prodArchivedWorkflows);
           break;
         case "Production Prep":
-          startWorkflow(code,wfId,row,globalValues.prodPrepWorkflowColumn)
+          startWorkflow(code,wfId,row,globalValues.prodPrepWorkflowColumn,globalValues.prodPrepArchivedWorkflows);
           break;
         case "In App":
           updateDbSingleRange(code,globalValues.prodWorkflowDateColumn,new Date());
@@ -129,7 +151,10 @@ function doActions(stage,code,row,mode,prevStage,projectType){
     case "demote":
       switch(prevStage){
         case "Production":
-          archiveWorkflow(row)
+          archiveWorkflow(row,globalValues.prodArchivedWorkflows,globalValues.prodWorkflowColumn)
+          break;
+        case "Production Prep":
+          archiveWorkflow(row,globalValues.prodPrepArchivedWorkflows,globalValues.prodPrepWorkflowColumn);
           break;
       }
     break;
